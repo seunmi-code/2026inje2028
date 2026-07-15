@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2028 대입전형 PREVIEW 대시보드</title>
+    <style>
+        /* ================= CSS Variables ================= */
+        :root {
+            --bg-dark: #0a0b10;
+            --neon-blue: #00F0FF;
+            --neon-purple: #B537F2;
+            --neon-green: #00FF66;
+            --neon-orange: #FF5E3A;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #FFFFFF;
+            --text-sub: #A0ABC0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(0, 240, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(181, 55, 242, 0.08) 0%, transparent 40%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* ================= Header ================= */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        header .badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: var(--neon-blue);
+            margin-bottom: 15px;
+            border: 1px solid var(--neon-blue);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #fff, #A0ABC0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p { color: var(--text-sub); }
+
+        /* ================= Navigation Tabs ================= */
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .tab-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-sub);
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+            border-color: var(--neon-blue);
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.15), rgba(181, 55, 242, 0.15));
+            color: var(--text-main);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+        }
+
+        /* ================= Content & Cards ================= */
+        .tab-content { display: none; animation: fadeIn 0.5s ease; }
+        .tab-content.active { display: block; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+        .glass-card:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.2); }
+
+        .card-title {
+            font-size: 1.3rem;
+            color: var(--neon-blue);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+        }
+
+        .card-title.purple { color: var(--neon-purple); }
+        .card-title.orange { color: var(--neon-orange); }
+
+        /* Custom Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.95rem;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        th { color: var(--neon-blue); background: rgba(255,255,255,0.02); }
+
+        /* GPA Cliff Chart */
+        .gpa-chart {
+            display: flex;
+            align-items: flex-end;
+            height: 150px;
+            gap: 10px;
+            margin: 20px 0;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--text-sub);
+        }
+        .gpa-bar-wrap { flex: 1; text-align: center; }
+        .gpa-bar {
+            background: linear-gradient(to top, rgba(0,240,255,0.2), var(--neon-blue));
+            border-radius: 4px 4px 0 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 5px;
+            font-weight: bold;
+            transition: height 1s;
+        }
+        .gpa-bar.danger { background: linear-gradient(to top, rgba(255,94,58,0.2), var(--neon-orange)); }
+
+        /* Alert Box */
+        .alert-box {
+            background: rgba(255, 94, 58, 0.1);
+            border-left: 4px solid var(--neon-orange);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 15px;
+            font-size: 0.95rem;
+        }
+
+        /* Checklists */
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            background: rgba(255,255,255,0.02);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            border: 1px solid var(--glass-border);
+            transition: all 0.2s;
+        }
+        .checklist-item:hover { background: rgba(255,255,255,0.06); }
+        .checklist-item input {
+            appearance: none;
+            width: 22px; height: 22px;
+            border: 2px solid var(--neon-blue);
+            border-radius: 5px;
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .checklist-item input:checked { background: var(--neon-blue); }
+        .checklist-item input:checked::after {
+            content: '✔';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: #000;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .checklist-item.checked span { text-decoration: line-through; opacity: 0.5; }
+
+        .progress-bar-bg { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; margin: 20px 0; overflow: hidden; }
+        .progress-bar-fill { height: 100%; width: 0%; background: var(--neon-blue); transition: width 0.3s ease; box-shadow: 0 0 10px var(--neon-blue);}
+
+        /* Timeline */
+        .timeline { border-left: 2px solid var(--neon-purple); padding-left: 20px; margin-top: 20px; }
+        .timeline-item { margin-bottom: 20px; position: relative; }
+        .timeline-item::before {
+            content: ''; position: absolute; left: -27px; top: 3px; width: 12px; height: 12px;
+            background: var(--bg-dark); border: 2px solid var(--neon-purple); border-radius: 50%;
+        }
+        .timeline-date { color: var(--neon-purple); font-weight: bold; font-size: 0.9rem; margin-bottom: 5px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 800px) {
+            .tabs { grid-template-columns: 1fr 1fr; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 500px) {
+            .tabs { grid-template-columns: 1fr; }
+            header h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="badge">인제고등학교 2학년부 | 2026. 07.</div>
+        <h1>🎯 2028학년도 대입전형 PREVIEW</h1>
+        <p>지금의 위치에서 할 수 있는 것을 찾는 것이 이 시기의 과제입니다.</p>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tab1', this)">1️⃣ 수능 & 내신 변화</button>
+        <button class="tab-btn" onclick="switchTab('tab2', this)">2️⃣ 교과전형 & 최저기준</button>
+        <button class="tab-btn" onclick="switchTab('tab3', this)">3️⃣ 무전공 & 의약학 특수</button>
+        <button class="tab-btn" onclick="switchTab('tab4', this)">4️⃣ 고2 필수 액션플랜</button>
+    </div>
+
+    <!-- TAB 1: 수능 & 내신 변화 -->
+    <div id="tab1" class="tab-content active">
+        <div class="grid-2">
+            <div class="glass-card">
+                <div class="card-title">📝 2028 통합형 수능 체제</div>
+                <p style="color: var(--text-sub); margin-bottom: 10px;">선택과목이 사라지고 전 수험생이 같은 시험을 치릅니다.</p>
+                <table>
+                    <tr><th>영역</th><th>출제범위</th><th>평가방식</th></tr>
+                    <tr><td>국어</td><td>화작, 독서, 문학</td><td>상대평가</td></tr>
+                    <tr><td>수학</td><td>대수, 미적분Ⅰ, 확통</td><td>상대평가</td></tr>
+                    <tr><td>탐구</td><td><b style="color:#fff;">통합사회 + 통합과학 (모두응시)</b></td><td>상대 분리산출</td></tr>
+                </table>
+                <div class="alert-box">
+                    ⚠️ 수학은 미적분Ⅱ, 기하가 제외됩니다. <b>탐구는 사/과탐 모두 응시 필수</b>이며, 정시에서 지망 계열에 따라 가중치가 다르게 적용되므로 소홀히 하면 큰 손해를 봅니다.
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div class="card-title orange">📉 5등급제 내신, 4등급 절벽 주의!</div>
+                <p style="color: var(--text-sub);">1~3등급 격차는 작으나, 4등급에서 5등급으로 갈 때 점수가 급락합니다.</p>
+                
+                <!-- Graphic Chart -->
+                <div class="gpa-chart">
+                    <div class="gpa-bar-wrap"><div class="gpa-bar" style="height: 100%;">100</div><span>1등급</span></div>
+                    <div class="gpa-bar-wrap"><div class="gpa-bar" style="height: 98%;">98</div><span>2등급</span></div>
+                    <div class="gpa-bar-wrap"><div class="gpa-bar" style="height: 95%;">95</div><span>3등급</span></div>
+                    <div class="gpa-bar-wrap"><div class="gpa-bar" style="height: 80%;">80</div><span>4등급</span></div>
+                    <div class="gpa-bar-wrap"><div class="gpa-bar danger" style="height: 30%;">30</div><span style="color:var(--neon-orange)">5등급</span></div>
+                </div>
+                
+                <p style="font-size: 0.9rem;">📌 <b>시사점:</b> 2~3등급이 섞여 있어도 교과전형 문이 닫히지 않습니다. 남은 두 학기(2-2, 3-1)의 최우선 목표는 <b>주요교과 4등급 이내 방어</b>입니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: 교과전형 & 최저기준 -->
+    <div id="tab2" class="tab-content">
+        <div class="grid-2">
+            <div class="glass-card">
+                <div class="card-title purple">🏫 교과전형에 '정성평가' 결합</div>
+                <p style="margin-bottom: 15px;">상위권 대학은 더 이상 내신 숫자만으로 선발하지 않습니다. 교과학습발달상황(세특)을 폭넓게 반영합니다.</p>
+                <table>
+                    <tr><th>대학</th><th>교과전형 평가 방식</th></tr>
+                    <tr><td>연세대</td><td>1단계 100% ➡️ 2단계 <b>서류평가 20%</b></td></tr>
+                    <tr><td>고려대</td><td>교과 80% + <b>서류(학종평가) 20%</b></td></tr>
+                    <tr><td>한양대</td><td>교과 60% + <b>학종평가 40%</b></td></tr>
+                    <tr><td>경희대</td><td>교과 등 70% + <b>교과종합평가 30%</b></td></tr>
+                </table>
+                <div class="alert-box">
+                    💡 교과전형을 노리더라도 <b>실체 있는 탐구 활동과 관찰 기록(세특)</b>이 필수입니다. 스스로 질문을 세우고 확장한 탐구 과정이 필요합니다.
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div class="card-title">🎯 수능최저학력기준은 여전히 광범위</div>
+                <p style="margin-bottom: 15px;">내신이 다소 아쉽다면 '수능최저' 충족이 곧 경쟁력입니다. (일반학과 2개 영역 합 5~8 범위)</p>
+                <table>
+                    <tr><th>대학</th><th>일반학과 수능최저 기준</th></tr>
+                    <tr><td>연세대</td><td>2과목 합 4 (인문) / 합 5 (자연) + 영3, 한4</td></tr>
+                    <tr><td>중앙대</td><td>3개 영역 합 7</td></tr>
+                    <tr><td>경희대/인하대</td><td>2개 영역 합 5 / 합 6</td></tr>
+                    <tr><td>가천대/인천대</td><td>2개 영역 합 6 / 합 7</td></tr>
+                </table>
+                <p style="margin-top: 15px; font-size: 0.9rem; color: var(--text-sub);">※ 논술전형도 대부분 최저를 유지하며, 최저가 없는 논술(가톨릭대, 경기대 등)은 경쟁률이 매우 높습니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: 무전공 & 의약학 특수 -->
+    <div id="tab3" class="tab-content">
+        <div class="grid-2">
+            <div class="glass-card">
+                <div class="card-title purple">🔄 전공자율선택(무전공) 대폭 확대</div>
+                <ul style="list-style-position: inside; margin-top: 10px; line-height: 1.8;">
+                    <li><b>유형1:</b> 전공 없이 입학 후 모든 전공(보건/사범 제외) 선택</li>
+                    <li><b>유형2:</b> 계열/단과대 단위 모집 후 해당 범위 내 선택</li>
+                    <li><b>규모:</b> 서울대 117명, 연세대 263명, 성균관대 280명 등 세 자릿수 대규모 선발.</li>
+                </ul>
+                <div class="alert-box">
+                    ⚠️ 성적 대비 대학 레벨을 높이는 기회가 될 수 있으나, <b>입결 변동성이 매우 크고</b> 입학 후 전공 배정 경쟁이 치열하다는 점을 고려해야 합니다.
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div class="card-title">🩺 의약학 계열 & 특수 전형 포인트</div>
+                <ul style="list-style-position: inside; margin-top: 10px; line-height: 1.8;">
+                    <li><span style="color:var(--neon-blue)"><b>지역의사제 (인천/경기):</b></span> 가천대, 성균관대, 아주대, 인하대 등 진료권별 선발. <b>졸업 후 10년간 해당 지역 의무복무 필수!</b> 불이행 시 학비 반환 및 면허 정지.</li>
+                    <li><span style="color:var(--neon-orange)"><b>수시 6회 제한 미적용 카드:</b></span> 과기원(KAIST, UNIST 등), 사관학교, 경찰대, 전문대학 등은 6회 제한에 미포함. (이공계 상위권 추가 기회)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 4: 고2 필수 액션플랜 -->
+    <div id="tab4" class="tab-content">
+        <div class="grid-2">
+            <!-- Checklist -->
+            <div class="glass-card">
+                <div class="card-title orange">✅ 지금 2학년이 해야 할 일</div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+                
+                <div id="checklist">
+                    <label class="checklist-item">
+                        <input type="checkbox" onchange="updateProgress()">
+                        <span><b>통사·통과 동시 준비:</b> 정시에서 지망 계열 쪽 가중치 대비</span>
+                    </label>
+                    <label class="checklist-item">
+                        <input type="checkbox" onchange="updateProgress()">
+                        <span><b>4등급 이내 방어:</b> 5등급 하락 시 환산점수 절벽 타격 방지</span>
+                    </label>
+                    <label class="checklist-item">
+                        <input type="checkbox" onchange="updateProgress()">
+                        <span><b>진로/융합선택 반영 확인:</b> 3학년 과목 선택 전 지망 대학 규정 확인</span>
+                    </label>
+                    <label class="checklist-item">
+                        <input type="checkbox" onchange="updateProgress()">
+                        <span><b>세특 실체 만들기:</b> 교과전형도 정성평가! 능동적 탐구 과정 기록</span>
+                    </label>
+                    <label class="checklist-item">
+                        <input type="checkbox" onchange="updateProgress()">
+                        <span><b>수능최저 전략 수립:</b> 모의고사 기준 안정적 2개 영역 확보</span>
+                    </label>
+                    <label class="checklist-item">
+                        <input type="checkbox" onchange="updateProgress()">
+                        <span><b>추가 기회 탐색:</b> 수시 6회 외 과기원/특수대 및 무전공 카드 검토</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="glass-card">
+                <div class="card-title purple">🗓️ 2028학년도 대입 주요 일정</div>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-date">2027. 09. 20.(월) ~ 09. 23.(목)</div>
+                        <div>수시 원서접수 (기간 중 3일 이상)</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">2027. 11. 18.(목)</div>
+                        <div style="color:#fff; font-weight:bold;">📝 대학수학능력시험일</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">2027. 12. 10.(금)</div>
+                        <div>수능 성적 통지</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">2027. 12. 21.(화) 까지</div>
+                        <div>수시 최초합격자 발표</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">2028. 01. 03.(월) ~ 01. 06.(목)</div>
+                        <div>정시 원서접수</div>
+                    </div>
+                </div>
+                <div style="margin-top: 20px; font-weight: bold; color: var(--neon-blue);">
+                    "지금부터 수능까지 약 1년 4개월. 내신 반영 학기는 2번 남았습니다."
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Interactive JavaScript -->
+<script>
+    // Tab Switching
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.querySelectorAll('.tab-btn').forEach(button => {
+            button.classList.remove('active');
+        });
+
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    // Checklist Progress Logic
+    function updateProgress() {
+        const checkboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]');
+        let checkedCount = 0;
+        
+        checkboxes.forEach(cb => {
+            const parent = cb.parentElement;
+            if (cb.checked) {
+                checkedCount++;
+                parent.classList.add('checked');
+            } else {
+                parent.classList.remove('checked');
+            }
+        });
+
+        const percentage = (checkedCount / checkboxes.length) * 100;
+        document.getElementById('progressFill').style.width = percentage + '%';
+
+        if (percentage === 100) {
+            setTimeout(() => {
+                alert("🎉 모든 준비 체크 완료! 남은 기간 끝까지 파이팅입니다!");
+            }, 300);
+        }
+    }
+</script>
+
+</body>
+</html>
